@@ -5,6 +5,15 @@ import { useAuth } from '../AuthContext';
 import './ShopPage.css';
 import Footer from '../components/Footer';
 
+type ApiError = { response?: { data?: { message?: string } } };
+
+function getErrorMessage(err: unknown, fallback: string) {
+  const apiMessage = (err as ApiError)?.response?.data?.message;
+  if (apiMessage) return apiMessage;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 export default function ShopPage() {
   const [sweets, setSweets] = useState<Sweet[]>([]);
   const [searchName, setSearchName] = useState('');
@@ -38,7 +47,7 @@ export default function ShopPage() {
   }, []);
 
   async function handleSearch() {
-    const filters: any = {};
+    const filters: Partial<{ name: string; category: string; minPrice: number; maxPrice: number }> = {};
     if (searchName) filters.name = searchName;
     if (searchCategory) filters.category = searchCategory;
     if (minPrice) filters.minPrice = Number(minPrice);
@@ -53,8 +62,8 @@ export default function ShopPage() {
     try {
       await purchaseSweet(id);
       loadSweets();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Purchase failed');
+    } catch (err) {
+      alert(getErrorMessage(err, 'Purchase failed'));
     }
   }
 

@@ -5,6 +5,15 @@ import { useAuth } from '../AuthContext';
 import './Dashboard.css';
 import Footer from '../components/Footer';
 
+type ApiError = { response?: { data?: { message?: string } } };
+
+function getErrorMessage(err: unknown, fallback: string) {
+  const apiMessage = (err as ApiError)?.response?.data?.message;
+  if (apiMessage) return apiMessage;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 export default function Dashboard() {
   const [sweets, setSweets] = useState<Sweet[]>([]);
   const [searchName, setSearchName] = useState('');
@@ -43,11 +52,30 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    loadSweets();
+    let isCancelled = false;
+
+    async function fetchSweets() {
+      try {
+        const data = await listSweets();
+        if (!isCancelled) {
+          setSweets(data);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('Failed to load sweets', err);
+        }
+      }
+    }
+
+    void fetchSweets();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   async function handleSearch() {
-    const filters: any = {};
+    const filters: Partial<{ name: string; category: string; minPrice: number; maxPrice: number }> = {};
     if (searchName) filters.name = searchName;
     if (searchCategory) filters.category = searchCategory;
     if (minPrice) filters.minPrice = Number(minPrice);
@@ -60,8 +88,8 @@ export default function Dashboard() {
     try {
       await purchaseSweet(id);
       loadSweets();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Purchase failed');
+    } catch (err) {
+      alert(getErrorMessage(err, 'Purchase failed'));
     }
   }
 
@@ -70,8 +98,8 @@ export default function Dashboard() {
     try {
       await deleteSweet(id);
       loadSweets();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Delete failed');
+    } catch (err) {
+      alert(getErrorMessage(err, 'Delete failed'));
     }
   }
 
@@ -96,8 +124,8 @@ export default function Dashboard() {
       setEditingSweet(null);
       setFormData({ name: '', category: '', price: '', quantity: '' });
       loadSweets();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Operation failed');
+    } catch (err) {
+      alert(getErrorMessage(err, 'Operation failed'));
     }
   }
 
@@ -108,8 +136,8 @@ export default function Dashboard() {
       setRestockId(null);
       setRestockAmount('');
       loadSweets();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Restock failed');
+    } catch (err) {
+      alert(getErrorMessage(err, 'Restock failed'));
     }
   }
 

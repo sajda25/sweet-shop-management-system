@@ -19,8 +19,10 @@ export default function AuthPage() {
       const data = isLogin ? await apiLogin(email, password) : await apiRegister(email, password);
       login(data.user, data.token);
       navigate(data.user.role === 'ADMIN' ? '/admin' : '/shop');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Authentication failed');
+    } catch (err) {
+      const apiMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const fallback = err instanceof Error ? err.message : 'Authentication failed';
+      setError(apiMessage || fallback);
     }
   }
 
