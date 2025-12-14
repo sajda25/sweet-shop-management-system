@@ -1,0 +1,28 @@
+
+> backend@1.0.0 test
+> jest --runInBand
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+1 migration found in prisma/migrations
+
+
+No pending migrations to apply.
+PASS tests/sweets.test.ts (9.475 s)
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+1 migration found in prisma/migrations
+
+
+No pending migrations to apply.
+PASS tests/auth.test.ts
+
+Test Suites: 2 passed, 2 total
+Tests:       10 passed, 10 total
+Snapshots:   0 total
+Time:        13.179 s
+Ran all test suites.
