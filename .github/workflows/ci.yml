@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-tests:
+    name: Backend - Jest Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: |
+          npx prisma generate
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          DATABASE_URL: 'file:./dev.db'
+          JWT_SECRET: 'ci-secret'
+        run: npm test --silent
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage
+
+      - name: Typecheck
+        working-directory: backend
+        run: npm run typecheck --silent
+
+  frontend-build:
+    name: Frontend - Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint -- --max-warnings=0
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build

@@ -8,6 +8,7 @@ export type SweetInput = {
   quantity: number;
 };
 
+// Creates a new sweet with validated input
 export async function createSweet(input: SweetInput) {
   return prisma.sweet.create({
     data: {
@@ -19,10 +20,12 @@ export async function createSweet(input: SweetInput) {
   });
 }
 
+// Lists sweets sorted by recency
 export async function listSweets() {
   return prisma.sweet.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
+// Searches sweets by optional filters (name/category/price range)
 export async function searchSweets(filters: {
   name?: string;
   category?: string;
@@ -42,6 +45,7 @@ export async function searchSweets(filters: {
   });
 }
 
+// Updates a sweet by id with partial fields
 export async function updateSweet(id: number, data: Partial<SweetInput>) {
   return prisma.sweet.update({
     where: { id },
@@ -54,10 +58,12 @@ export async function updateSweet(id: number, data: Partial<SweetInput>) {
   });
 }
 
+// Deletes a sweet by id
 export async function deleteSweet(id: number) {
   return prisma.sweet.delete({ where: { id } });
 }
 
+// Purchases one unit; enforces stock availability
 export async function purchaseSweet(id: number) {
   const sweet = await prisma.sweet.findUnique({ where: { id } });
   if (!sweet) {
@@ -69,6 +75,7 @@ export async function purchaseSweet(id: number) {
   return prisma.sweet.update({ where: { id }, data: { quantity: sweet.quantity - 1 } });
 }
 
+// Restocks inventory by a positive amount
 export async function restockSweet(id: number, amount: number) {
   const sweet = await prisma.sweet.findUnique({ where: { id } });
   if (!sweet) {

@@ -158,6 +158,24 @@ npm run dev
 
 Frontend runs on `http://localhost:5173`
 
+### Seeding Test Data
+
+To populate the database with an admin user and sample sweets:
+
+```bash
+cd backend
+npm run seed
+```
+
+**Default Admin Credentials:**
+- Email: `admin@example.com`
+- Password: `admin123`
+
+**Test Users:**
+- Register new users through the frontend UI
+- Admin users can access `/admin` route
+- Regular users can access `/shop` route
+
 ### Running Tests
 
 Backend tests (TDD with Jest):
@@ -270,19 +288,31 @@ All backend logic was developed using TDD methodology, visible in commit history
 
 ## Screenshots
 
-### Login Page
+### 1. Login/Register Page
 ![Login Screenshot](./screenshots/login.png)
-*Clean authentication interface with register/login toggle*
 
-### Dashboard - User View
-![Dashboard Screenshot](./screenshots/dashboard-user.png)
-*Sweet shop catalog with search filters and purchase functionality*
+*Clean authentication interface with register/login toggle functionality*
 
-### Dashboard - Admin View
-![Admin Dashboard Screenshot](./screenshots/dashboard-admin.png)
-*Full CRUD controls for inventory management, including add, edit, delete, and restock*
+### 2. Shop Page (User View)
+![Shop Screenshot](./screenshots/shop-user.png)
 
-*(Note: Screenshots to be captured after deployment)*
+*Browse sweets catalog with search filters, purchase functionality, and real-time stock display*
+
+### 3. Admin Dashboard
+![Admin Dashboard Screenshot](./screenshots/admin-dashboard.png)
+
+*Full inventory management with CRUD controls: add new sweets, edit details, delete items, and restock quantities*
+
+### 4. Footer Component
+![Footer Screenshot](./screenshots/footer.png)
+
+*Responsive footer with shop information visible on all authenticated pages*
+
+**Note**: To capture screenshots:
+1. Run the application locally (backend on port 4000, frontend on port 5173)
+2. Take screenshots of each view
+3. Save them in a `screenshots/` folder in the project root
+4. Screenshots show the fully functional UI with the fixed footer component
 
 ## Deployment
 
@@ -306,6 +336,39 @@ Deploy to platforms like:
 3. **AI Co-authorship**: All AI-assisted commits marked with co-author
 4. **Code Review**: Self-review of AI suggestions before committing
 5. **Integration Testing**: Manual end-to-end testing after feature completion
+
+## Continuous Integration (CI)
+
+This project uses GitHub Actions to automatically run **backend tests** and **frontend builds** on every push and pull request.
+
+- Workflow file: `.github/workflows/ci.yml`
+- Jobs:
+  - Backend: Installs dependencies, generates Prisma client, runs Jest tests
+  - Frontend: Installs dependencies and builds the React app
+  - Coverage: Jest runs with coverage and uploads artifacts
+  - Typecheck: Backend `npm run typecheck`
+
+To enable CI:
+- Push the repository to GitHub (public) and GitHub Actions will trigger automatically.
+
+Badge (after pushing to GitHub):
+```
+![CI](https://github.com/sajda25/sweet-shop-management-system/actions/workflows/ci.yml/badge.svg)
+```
+
+## Architecture Overview
+
+- **Backend**: Express (TypeScript) with Prisma ORM (SQLite). Layers:
+  - `routes/` wires HTTP endpoints to services
+  - `middleware/` handles auth/role guards via JWT
+  - `services/` implements business logic for users and sweets
+  - `prisma/` provides the database client; `schema.prisma` defines models
+- **Frontend**: React + Vite (TypeScript)
+  - `AuthContext` manages auth state and routes guard
+  - `pages/` provides Auth, Shop (user), Dashboard (admin)
+  - `components/` contains shared UI (Footer)
+  - `api.ts` centralizes Axios calls to backend
+- **Data flow**: React pages call `api.ts` → backend routes → service layer → Prisma → SQLite; JWT stored client-side and sent via Authorization header.
 
 ## Future Enhancements
 

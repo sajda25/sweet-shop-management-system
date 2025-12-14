@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { listSweets, searchSweets, purchaseSweet, deleteSweet, createSweet, updateSweet, restockSweet, Sweet } from '../api';
+import { useEffect, useMemo, useState } from 'react';
+import type { Sweet } from '../api';
+import { listSweets, searchSweets, purchaseSweet, deleteSweet, createSweet, updateSweet, restockSweet } from '../api';
 import { useAuth } from '../AuthContext';
 import './Dashboard.css';
+import Footer from '../components/Footer';
 
 export default function Dashboard() {
   const [sweets, setSweets] = useState<Sweet[]>([]);
@@ -16,7 +17,21 @@ export default function Dashboard() {
   const [restockId, setRestockId] = useState<number | null>(null);
   const [restockAmount, setRestockAmount] = useState('');
   const { user, logout, isAdmin } = useAuth();
-  const navigate = useNavigate();
+
+  const stats = useMemo(() => {
+    const totalItems = sweets.length;
+    const totalQuantity = sweets.reduce((sum, s) => sum + Number(s.quantity || 0), 0);
+    const lowStock = sweets.filter((s) => Number(s.quantity) < 5).length;
+    const categories = new Set(sweets.map((s) => s.category || 'Uncategorized')).size;
+    return { totalItems, totalQuantity, lowStock, categories };
+  }, [sweets]);
+
+  const openAdd = () => {
+    if (!isAdmin) return;
+    setShowAddForm(true);
+    setEditingSweet(null);
+    setFormData({ name: '', category: '', price: '', quantity: '' });
+  };
 
   async function loadSweets() {
     try {
@@ -106,13 +121,55 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      <header className="dashboard-header">
-        <h1>Sweet Shop Dashboard</h1>
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Admin workspace</p>
+          <h1 className="hero-title">Inventory & Pricing</h1>
+          <p className="hero-subtitle">Add new sweets, update prices, restock fast. Buyers see a separate shop view.</p>
+          <div className="hero-chips">
+            <span className="chip">Add</span>
+            <span className="chip">Update</span>
+            <span className="chip">Restock</span>
+          </div>
+        </div>
         <div className="user-info">
-          <span>{user?.email} {isAdmin && <span className="badge">ADMIN</span>}</span>
+          <span className="user-email">{user?.email} {isAdmin && <span className="badge">Admin</span>}</span>
           <button onClick={logout} className="btn-logout">Logout</button>
         </div>
-      </header>
+      </div>
+
+      <div className="cta-banner">
+        <div>
+          <p className="cta-kicker">Fresh arrivals</p>
+          <h3>Keep the counter full of color.</h3>
+          <p className="cta-sub">Add limited editions, update pricing, or restock bestsellers in seconds.</p>
+        </div>
+        <div className="cta-actions">
+          {isAdmin && (
+            <button className="btn-primary" onClick={openAdd}>+ Add a Sweet</button>
+          )}
+          <button className="btn-ghost" onClick={loadSweets}>Refresh List</button>
+        </div>
+      </div>
+
+      <div className="metrics">
+        <div className="metric-card">
+          <div className="metric-label">Unique Sweets</div>
+          <div className="metric-value">{stats.totalItems}</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Total In Stock</div>
+          <div className="metric-value">{stats.totalQuantity}</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Categories</div>
+          <div className="metric-value">{stats.categories}</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Low Stock (&lt;5)</div>
+          <div className="metric-value">{stats.lowStock}</div>
+        </div>
+      </div>
 
       <div className="search-bar">
         <input placeholder="Name" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
@@ -171,6 +228,8 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      <Footer />
     </div>
   );
 }

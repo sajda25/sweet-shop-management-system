@@ -18,7 +18,7 @@ export default function AuthPage() {
     try {
       const data = isLogin ? await apiLogin(email, password) : await apiRegister(email, password);
       login(data.user, data.token);
-      navigate('/dashboard');
+      navigate(data.user.role === 'ADMIN' ? '/admin' : '/shop');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Authentication failed');
     }
